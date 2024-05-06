@@ -1,8 +1,10 @@
 const functions = require('firebase-functions');
 const express = require('express');
 const crypto = require('crypto');
+const fs = require('fs');
 
 const axios = require('axios');
+// const { request } = require('http');
 
 const app = express();
 
@@ -36,7 +38,7 @@ app.get('/callback', async (req, res) => {
 
     try {
         const response = await axios.post(url);
-        console.log(response.data);
+        saveFile(response.data);
 
     } catch (error) {
         console.log(error);
@@ -44,16 +46,12 @@ app.get('/callback', async (req, res) => {
     return res.send(req.query)
 });
 
-// app.get('/test', async (req, res) => {
-//     const { token } = req.query;
-//     let url = `https://appDat.myshopify.com`;
-//     const response = await axios.get(url + '/admin/api/2024-04/shop.json', {
-//         headers: {
-//             'X-shopify-Access-Token': token,
-//         },
+const saveFile = (access_token) => {
+    const filePath = 'save.txt';
+    const jsonData = JSON.stringify(access_token, null, 2);
+    fs.writeFileSync(filePath, jsonData);
+};
 
-//     });
-//     return res.send(response.data);
-// });
+
 
 exports.academy = functions.region('asia-southeast1').https.onRequest(app);
