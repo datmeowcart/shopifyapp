@@ -1,4 +1,4 @@
 {
   "access_token": "shpua_08e2a48a809eaa91e246bf4d8561d3f2",
-  "scope": "write_products"
+  "scope": "write_products,write_orders"
 }
