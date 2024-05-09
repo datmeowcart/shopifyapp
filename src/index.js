@@ -5,7 +5,8 @@ const fs = require('fs');
 const meowlog = require('@meowapp/meowlog');
 const axios = require('axios');
 const ShopifyService = require('./services/ShopifyService');
-
+const verifyWebhook = require('./middleware/verifyWebhook');
+const webhookController = require('./controllers/webhookController');
 // const { request } = require('http');
 
 const app = express();
@@ -60,12 +61,16 @@ app.get('/api/test', async (req, res) => {
     return res.send(response.data);
 });
 
-app.post('/api/shopify/webhooks', async (req, res) => {
-    meowlog('req', req.headers);
-    meowlog('body', req.body);
+app.post('/api/shopify/webhooks', express.json({
+    limit: '10mb',
+    verify: (req, _res, buf) => {
+        req.rawBody = buf;
+    },
+})
+);
 
-    return res.send('Please check in terminal');
-});
+app.post('/api/shopify/webhooks', verifyWebhook);
+app.post('/api/shopify/webhooks', webhookController.receive);
 
 app.get('/api/createSubscriptions', async (req, res) => {
     const accessToken = 'shpua_08e2a48a809eaa91e246bf4d8561d3f2';
@@ -95,31 +100,35 @@ app.get('/api/createSubscriptions', async (req, res) => {
       }
   }`;
 
-    const variables = {
-        topic: 'ORDERS_CREATE',
-        webhookSubscription: {
-            callbackUrl: callbackUrl,
-            format: 'JSON',
-        },
-    }
+    const topics = ['ORDERS_CREATE', 'ORDERS_UPDATED'];
+
+
 
     try {
         await ShopifyService.deleteWebhooks(shop, accessToken);
         // return res.send('Please check in terminal');
-        const response = await axios.post(url, JSON.stringify({
-            query: WEBHOOK_SUBCRIPTION_QUERY,
-            variables,
-        }),
-            {
-                headers: {
-                    'X-Shopify-Access-Token': accessToken,
-                    'Content-Type': 'application/json',
+        for (let i = 0; i < topics.length; i++) {
+            await axios.post(url, JSON.stringify({
+                query: WEBHOOK_SUBCRIPTION_QUERY,
+                variables: {
+                    topic: topics[i],
+                    webhookSubscription: {
+                        callbackUrl: callbackUrl,
+                        format: 'JSON',
+                    },
                 },
-            }
-        )
-            .then((res) => res.data);
+            }),
+                {
+                    headers: {
+                        'X-Shopify-Access-Token': accessToken,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            )
+                .then((res) => res.data);
+        }
 
-        meowlog('createSubcriptionResponse', response);
+        // meowlog('createSubcriptionResponse', response);
         return res.send('Please check in terminal');
     } catch (error) {
         console.log('api.createSubscriptions ->error', error);
