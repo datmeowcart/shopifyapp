@@ -61,7 +61,7 @@ app.get('/api/test', async (req, res) => {
 });
 
 app.post('/api/shopify/webhooks', async (req, res) => {
-    meowlog('req', req.header);
+    meowlog('req', req.headers);
     meowlog('body', req.body);
 
     return res.send('Please check in terminal');
@@ -69,32 +69,31 @@ app.post('/api/shopify/webhooks', async (req, res) => {
 
 app.get('/api/createSubscriptions', async (req, res) => {
     const accessToken = 'shpua_08e2a48a809eaa91e246bf4d8561d3f2';
-    const shop = 'https://000undefined-clone.myshopify.com';
+    const shop = '000undefined-clone.myshopify.com';
     const url = `https://${shop}/admin/api/2024-04/graphql.json`;
 
-    const callbackUrl = `https://753f-58-186-196-139.ngrok-free.app/api/shopify/webhooks`;
+    const callbackUrl = `https://c945-2402-800-631c-f612-dd69-a45f-e0c-8181.ngrok-free.app/api/shopify/webhooks`;
 
-    const WEBHOOK_SUBSCRIPTION_QUERY = `#graphql 
+    const WEBHOOK_SUBCRIPTION_QUERY = `#graphql
     mutation webhookSubscriptionCreate($topic: WebhookSubscriptionTopic!, $webhookSubscription: WebhookSubscriptionInput!) {
-    webhookSubscriptionCreate(topic: $topic, webhookSubscription: $webhookSubscription) {
-      userErrors{
-        field
-        message
-      }
+      webhookSubscriptionCreate(topic: $topic, webhookSubscription: $webhookSubscription) {
+        userErrors {
+          field
+          message
+        }
         webhookSubscription {
-        id
-        topic
-        format
-        endpoint {
-          __typename
-          ... on WebhookHttpEndpoint {
-            callbackUrl
+          id
+          topic
+          format
+          endpoint {
+            __typename
+            ... on WebhookHttpEndpoint {
+              callbackUrl
+            }
           }
         }
       }
-    }
-  }
-  `;
+  }`;
 
     const variables = {
         topic: 'ORDERS_CREATE',
@@ -108,7 +107,7 @@ app.get('/api/createSubscriptions', async (req, res) => {
         await ShopifyService.deleteWebhooks(shop, accessToken);
         // return res.send('Please check in terminal');
         const response = await axios.post(url, JSON.stringify({
-            query: WEBHOOK_SUBSCRIPTION_QUERY,
+            query: WEBHOOK_SUBCRIPTION_QUERY,
             variables,
         }),
             {

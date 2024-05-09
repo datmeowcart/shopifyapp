@@ -45,18 +45,18 @@ class ShopifyService {
         },
       }
     ).then((res) => res.data);
-
+    meowlog('response', response);
     const isHasData = response?.data?.webhookSubscriptions?.edges.length > 0;
     if (!isHasData) {
       return true;
     }
 
     for (const node of response.data.webhookSubscriptions.edges) {
-      console.log('DELETING WEBHOOK:', node.node.id, node.node.topid)
+      console.log('DELETING WEBHOOK:', node.node.id, node.node.topic)
       await this.deleteWebhook(shopifyDomain, accessToken, apiVersion, node.node.id)
     }
 
-    meowlog('response', response);
+
 
     return false;
   }
@@ -93,7 +93,7 @@ class ShopifyService {
   }
 
   static createGraphQLUrl(shopifyDomain, apiVersion) {
-    return `${shopifyDomain}/admin/api/${apiVersion}/graphql.json`;
+    return `https://${shopifyDomain}/admin/api/${apiVersion}/graphql.json`;
   }
 }
 
